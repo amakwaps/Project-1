@@ -1,0 +1,76 @@
+---
+title: "Project 1"
+author: "@bnakwaps"
+date: "17/02/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+```
+
+```{r include = FALSE}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+
+```
+
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(tidytuesdayR)
+library(geomtextpath)
+library(ggmap)
+library(ggtext)
+library(waffle)
+library(dplyr)
+
+data <- tidytuesdayR::tt_load("2022-01-18")
+data <- tidytuesdayR::tt_load(2022, week = 3)
+
+```
+
+
+```{r, fig.height = 20}
+chocolate <- data$chocolate
+chocolate$ratings <- cut(chocolate$rating, breaks = c(2.0, 3.0, 4.0, 5.0), 
+                               labels = c("Good", "Better", "Best"))
+tablet <- tribble(chocolate$ratings,chocolate$rating)
+
+colfunc <- colorRampPalette(c("#f9c37a", "#4c281a"))
+choco_colors <- colfunc(4)
+
+countries <- c('Ghana', 'Ecuador',  'Tanzania', 'Ivory Coast', 'Tanzania', 'Madagascar')
+
+chocolate %>%
+  count(country_of_bean_origin, ratings) %>%
+  filter(country_of_bean_origin %in% countries) %>%
+  ggplot(aes(values = n, fill = ratings)) + 
+    geom_waffle(n_rows = 5, 
+                size = 3, 
+                colour = "blue", 
+                flip = TRUE ,
+                make_proportional = FALSE, 
+                radius = unit(4, "pt")) +
+    expand_limits(x=c(0,0), y=c(0,0)) +
+    coord_equal() +
+    facet_wrap(~factor(country_of_bean_origin,
+               levels = countries),
+               nrow = 1,
+               scales = "free",
+               drop = TRUE,
+               shrink = TRUE,
+               as.table = TRUE,
+               strip.position = "bottom") +
+    theme_void() 
+
+```
+
